@@ -73,6 +73,7 @@
   gap: var(--padding-sm);
   padding-left: var(--padding-md);
   overflow: auto;
+
   flex-grow: 1;
 }
 

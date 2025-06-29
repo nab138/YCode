@@ -344,14 +344,14 @@ export default function MenuBar({ callbacks }: MenuBarProps) {
         ))}
       <CommandButton
         variant="plain"
-        command="clean_theos"
+        command="clean_swift"
         icon={<CleaningServices />}
         parameters={{ folder: path }}
         sx={{ marginLeft: "auto", marginRight: 0 }}
       />
       <CommandButton
         variant="plain"
-        command="build_theos"
+        command="build_swift"
         icon={<Construction />}
         parameters={{ folder: path }}
         sx={{ marginRight: 0 }}
@@ -389,7 +389,7 @@ export default function MenuBar({ callbacks }: MenuBarProps) {
         </Select>
         <CommandButton
           variant="plain"
-          command="deploy_theos"
+          command="deploy_swift"
           icon={<PhonelinkSetup />}
           parameters={{
             folder: path,

@@ -22,16 +22,23 @@ import {
   Typography,
 } from "@mui/joy";
 import { useCommandRunner } from "./Command";
+import { useStore } from "./StoreContext";
 
 export interface IDEContextType {
   initialized: boolean;
   isWindows: boolean;
   hasWSL: boolean;
-  hasTheos: boolean;
+  toolchains: ListToolchainResponse | null;
+  selectedToolchain: Toolchain | null;
   devices: DeviceInfo[];
   openFolderDialog: () => void;
   consoleLines: string[];
   setConsoleLines: React.Dispatch<React.SetStateAction<string[]>>;
+  scanToolchains: () => Promise<void>;
+  locateToolchain: () => Promise<void>;
+  setSelectedToolchain: (
+    value: Toolchain | ((oldValue: Toolchain | null) => Toolchain | null) | null
+  ) => void;
 }
 
 export type DeviceInfo = {
@@ -40,6 +47,28 @@ export type DeviceInfo = {
   uuid: string;
 };
 
+export type Toolchain = {
+  version: string;
+  path: string;
+  isSwiftly: boolean;
+};
+
+type ListToolchainResponseWithSwiftly = {
+  swiftlyInstalled: true;
+  swiftlyVersion: string;
+  toolchains: Toolchain[];
+};
+
+type ListToolchainResponseWithoutSwiftly = {
+  swiftlyInstalled: false;
+  swiftlyVersion: null;
+  toolchains: Toolchain[];
+};
+
+export type ListToolchainResponse =
+  | ListToolchainResponseWithSwiftly
+  | ListToolchainResponseWithoutSwiftly;
+
 export const IDEContext = createContext<IDEContextType | null>(null);
 
 export const IDEProvider: React.FC<{
@@ -47,18 +76,64 @@ export const IDEProvider: React.FC<{
 }> = ({ children }) => {
   const [isWindows, setIsWindows] = useState<boolean>(false);
   const [hasWSL, setHasWSL] = useState<boolean>(false);
-  const [hasTheos, setHasTheos] = useState<boolean>(false);
+  const [toolchains, setToolchains] = useState<ListToolchainResponse | null>(
+    null
+  );
   const [initialized, setInitialized] = useState(false);
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
   const [consoleLines, setConsoleLines] = useState<string[]>([]);
+  const [selectedToolchain, setSelectedToolchain] = useStore<Toolchain | null>(
+    "swift/selected-toolchain",
+    null
+  );
+
+  const scanToolchains = useCallback(() => {
+    return invoke<ListToolchainResponse>("get_swiftly_toolchains").then(
+      (response) => {
+        if (response) {
+          setToolchains(response);
+        }
+      }
+    );
+  }, []);
+
+  const locateToolchain = useCallback(async () => {
+    const path = await dialog.open({
+      directory: true,
+      multiple: false,
+    });
+    if (!path) {
+      addToast.error("No path selected");
+      return;
+    }
+    if (await invoke("validate_toolchain", { toolchainPath: path })) {
+      const version = await invoke<string>("get_toolchain_version", {
+        toolchainPath: path,
+      }).catch((error) => {
+        console.error("Error getting toolchain version:", error);
+        addToast.error("Failed to get toolchain version");
+        return null;
+      });
+      if (!version) {
+        addToast.error("Invalid toolchain path or version not found");
+        return;
+      }
+      if (version) {
+        const toolchain: Toolchain = {
+          version: version,
+          path: path,
+          isSwiftly: false,
+        };
+        setSelectedToolchain(toolchain);
+      }
+    } else {
+      addToast.error("Invalid toolchain path");
+    }
+  }, []);
 
   useEffect(() => {
     let initPromises: Promise<void>[] = [];
-    initPromises.push(
-      invoke("has_theos").then((response) => {
-        setHasTheos(response as boolean);
-      })
-    );
+    initPromises.push(scanToolchains());
     initPromises.push(
       invoke("has_wsl").then((response) => {
         setHasWSL(response as boolean);
@@ -181,21 +256,30 @@ export const IDEProvider: React.FC<{
     () => ({
       isWindows,
       hasWSL,
-      hasTheos,
+      toolchains,
       initialized,
       devices,
       openFolderDialog,
       consoleLines,
       setConsoleLines,
+      selectedToolchain,
+      scanToolchains,
+      locateToolchain,
+      setSelectedToolchain,
     }),
     [
       isWindows,
       hasWSL,
-      hasTheos,
+      toolchains,
       initialized,
       devices,
       openFolderDialog,
       consoleLines,
+      setConsoleLines,
+      selectedToolchain,
+      scanToolchains,
+      locateToolchain,
+      setSelectedToolchain,
     ]
   );
 

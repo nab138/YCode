@@ -81,9 +81,9 @@ const App = () => {
                 <Route path="/new" element={<New />} />
                 <Route path="/new/:template" element={<NewTemplate />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
-              </Route>
 
-              <Route path="/preferences/:page?" element={<Preferences />} />
+                <Route path="/preferences/:page?" element={<Preferences />} />
+              </Route>
             </Routes>
           </Sheet>
         </StoreProvider>
