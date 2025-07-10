@@ -183,7 +183,7 @@ export default function MenuBar({ callbacks }: MenuBarProps) {
 
   const resetMenuIndex = useCallback(() => setMenuIndex(null), []);
   const { path } = useParams<"path">();
-  const { devices } = useIDE();
+  const { devices, selectedToolchain } = useIDE();
   const [anisetteServer] = useStore<string>(
     "apple-id/anisette-server",
     "ani.sidestore.io"
@@ -344,16 +344,23 @@ export default function MenuBar({ callbacks }: MenuBarProps) {
         ))}
       <CommandButton
         variant="plain"
-        command="clean_theos"
+        command="clean_swift"
         icon={<CleaningServices />}
-        parameters={{ folder: path }}
+        parameters={{
+          folder: path,
+          toolchainPath: selectedToolchain?.path ?? "",
+        }}
         sx={{ marginLeft: "auto", marginRight: 0 }}
       />
       <CommandButton
         variant="plain"
-        command="build_theos"
+        command="build_swift"
         icon={<Construction />}
-        parameters={{ folder: path }}
+        parameters={{
+          folder: path,
+          toolchainPath: selectedToolchain?.path ?? "",
+          debug: true,
+        }}
         sx={{ marginRight: 0 }}
       />
       <Divider orientation="vertical" />
@@ -389,12 +396,14 @@ export default function MenuBar({ callbacks }: MenuBarProps) {
         </Select>
         <CommandButton
           variant="plain"
-          command="deploy_theos"
+          command="deploy_swift"
           icon={<PhonelinkSetup />}
           parameters={{
             folder: path,
             anisetteServer,
             device: selectedDevice,
+            toolchainPath: selectedToolchain?.path ?? "",
+            debug: true,
           }}
           validate={() => {
             if (!selectedDevice) {

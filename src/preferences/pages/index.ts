@@ -7,6 +7,7 @@ import { appleIdPage } from "./appleId";
 import { certificatesPage } from "./certificates";
 import { appIdsPage } from "./appIds";
 import { developerPage } from "./developer";
+import { swiftPage } from "./swift";
 
 const generalCategory: PreferenceCategory = {
   id: "general",
@@ -20,6 +21,12 @@ const appleCategory: PreferenceCategory = {
   pages: [appleIdPage, certificatesPage, appIdsPage],
 };
 
+const swiftCategory: PreferenceCategory = {
+  id: "swift",
+  name: "Swift",
+  pages: [swiftPage],
+};
+
 const advancedCategory: PreferenceCategory = {
   id: "advanced",
   name: "Advanced",
@@ -28,6 +35,7 @@ const advancedCategory: PreferenceCategory = {
 
 preferenceRegistry.registerCategory(generalCategory);
 preferenceRegistry.registerCategory(appleCategory);
+preferenceRegistry.registerCategory(swiftCategory);
 preferenceRegistry.registerCategory(advancedCategory);
 
 export { preferenceRegistry };

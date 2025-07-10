@@ -10,11 +10,14 @@ Coming soon...
 
 YCode is currently in development and not recommended for use. However, if you want to try it out, your feedback would be greatly appreciated!
 
+**Windows is not supported yet (but it will be). Please do not open windows related issues at this time.**
+
 You can download the latest build from [actions](https://github.com/nab138/YCode/actions/workflows/build.yml).
 
 ## How it works
 
-- [Theos](https://theos.dev/) is used to build the project into an IPA.
+- A swift sdk is extracted from a user provided copy of Xcode.
+- SPM uses the swift sdk to build an executable which is packaged into an .app bundle.
 - [apple-private-apis](https://github.com/SideStore/apple-private-apis) is used to login to the Apple Account. Heavy additions have been made to support actually accessing the Developer APIs
 - [ZSign](https://github.com/zhlynn/zsign) is used to sign the IPA.
 - [idevice](https://github.com/jkcoxson/idevice) is used to install the IPA on the device.

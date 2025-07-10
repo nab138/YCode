@@ -2,27 +2,28 @@ import { useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-shell";
 import "./Onboarding.css";
 import { Button, Card, CardContent, Divider, Link, Typography } from "@mui/joy";
-import RunCommand from "../components/RunCommand";
 import { useIDE } from "../utilities/IDEContext";
 import logo from "../assets/logo.png";
 import { useNavigate } from "react-router";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import SwiftMenu from "../components/SwiftMenu";
+import SDKMenu from "../components/SDKMenu";
 
 export interface OnboardingProps {}
 
 export default ({}: OnboardingProps) => {
-  const { hasTheos, hasWSL, isWindows, openFolderDialog } = useIDE();
+  const { selectedToolchain, toolchains, hasWSL, isWindows, openFolderDialog } =
+    useIDE();
   const [ready, setReady] = useState(false);
-  const [updatingTheos, setUpdatingTheos] = useState(false);
-  const [installingTheos, setInstallingTheos] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (hasTheos !== null && isWindows !== null && hasWSL !== null) {
-      setReady(hasTheos && (isWindows ? hasWSL : true));
+    if (toolchains !== null && isWindows !== null && hasWSL !== null) {
+      setReady(selectedToolchain !== null && (isWindows ? hasWSL : true));
     } else {
       setReady(false);
     }
-  }, [hasTheos, hasWSL, isWindows]);
+  }, [selectedToolchain, toolchains, hasWSL, isWindows]);
 
   return (
     <div className="onboarding">
@@ -58,7 +59,7 @@ export default ({}: OnboardingProps) => {
         <Button
           size="lg"
           disabled={!ready}
-          className={!hasTheos ? "disabled-button" : ""}
+          className={!ready ? "disabled-button" : ""}
           onClick={() => {
             if (ready) {
               navigate("/new");
@@ -110,7 +111,7 @@ export default ({}: OnboardingProps) => {
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        open(
+                        openUrl(
                           "https://learn.microsoft.com/en-us/windows/wsl/install"
                         );
                       }}
@@ -125,90 +126,27 @@ export default ({}: OnboardingProps) => {
           </Card>
         )}
         <Card variant="soft">
-          <Typography level="h3">Theos</Typography>
+          <Typography level="h3">Swift</Typography>
           <Typography level="body-sm">
-            Theos is a cross-platform suite of tools for building software for
-            iOS. It is the core of YCode. Learn more about theos at{" "}
-            <Link
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                open("https://theos.dev");
-              }}
-            >
-              theos.dev
-            </Link>
-            .
+            You will need a Swift 6.0 toolchain to use YCode. It is recommended
+            to install it using swiftly, but you can also install it manually.
           </Typography>
           <Divider />
           <CardContent>
-            <Typography level="body-md">
-              {hasTheos === null
-                ? "Checking for Theos..."
-                : hasTheos
-                ? "Theos is already installed on your system!"
-                : "Theos is not installed on your system."}
-            </Typography>
-            {hasTheos === true && (
-              <Typography level="body-xs">
-                If you manually installed theos without installing
-                https://github.com/kabiroberai/swift-toolchain-linux/, please
-                delete $THEOS/toolchain and press reinstall.
-              </Typography>
-            )}
-            <div
-              style={{
-                marginTop: "var(--padding-md)",
-                display: "flex",
-                gap: "var(--padding-md)",
-              }}
-            >
-              {hasTheos === true && (
-                <Button
-                  variant="soft"
-                  onClick={() => {
-                    setUpdatingTheos(true);
-                  }}
-                >
-                  Update Theos
-                </Button>
-              )}
-              {hasTheos === true && (
-                <RunCommand
-                  title="Updating Theos..."
-                  command="update_theos"
-                  listener="update-theos-output"
-                  failedMessage="Failed to update Theos, you can try manually running $THEOS/bin/update-theos"
-                  doneMessage="Theos is up-to-date!"
-                  run={updatingTheos}
-                  setRun={setUpdatingTheos}
-                />
-              )}
-              {hasTheos !== null && (!isWindows || hasWSL) && (
-                <Button
-                  variant="soft"
-                  onClick={() => {
-                    setInstallingTheos(true);
-                  }}
-                >
-                  {hasTheos ? "Reinstall Theos" : "Install Theos"}
-                </Button>
-              )}
-              <RunCommand
-                title="Installing Theos..."
-                command={
-                  isWindows === true
-                    ? "install_theos_windows"
-                    : "install_theos_linux"
-                }
-                listener="install-theos-output"
-                failedMessage="Failed to install theos"
-                doneMessage="Theos has been installed! Please restart YCode."
-                run={installingTheos}
-                setRun={setInstallingTheos}
-                askPassword={isWindows === true}
-              />
-            </div>
+            <SwiftMenu />
+          </CardContent>
+        </Card>
+        <Card variant="soft">
+          <Typography level="h3">Darwin SDK</Typography>
+          <Typography level="body-sm">
+            YCode requires a special swift SDK to build apps for iOS. It can be
+            generated from a copy of Xcode 16 or later. To install it, download
+            Xcode.xip using the link below, click the "Install SDK" button, then
+            select the downloaded file.
+          </Typography>
+          <Divider />
+          <CardContent>
+            <SDKMenu />
           </CardContent>
         </Card>
       </div>
