@@ -6,6 +6,9 @@ import { useIDE } from "../../utilities/IDEContext";
 import CommandButton from "../CommandButton";
 import { useStore } from "../../utilities/StoreContext";
 import { useToast } from "react-toast-plus";
+import { MenuItem } from "@mui/joy";
+import { invoke } from "@tauri-apps/api/core";
+import { restartServer } from "../../utilities/lsp-client";
 
 export default [
   {
@@ -33,9 +36,7 @@ export default [
           {
             name: "Open File...",
             shortcut: "Ctrl+O",
-            callback: () => {
-              console.log("Open File!");
-            },
+            callbackName: "openFile",
           },
           {
             name: "Open Folder...",
@@ -258,6 +259,48 @@ export default [
               );
             },
             componentId: "cleanMenuBtn",
+          },
+        ],
+      },
+      {
+        label: "Start LSP",
+        items: [
+          {
+            name: "Restart LSP",
+            component: () => {
+              const { path } = useParams<"path">();
+              const { selectedToolchain } = useIDE();
+              return (
+                <MenuItem
+                  onClick={async () => {
+                    if (!selectedToolchain || !path) return;
+                    restartServer(path, selectedToolchain).catch((e) => {
+                      console.error("Failed to restart SourceKit-LSP:", e);
+                    });
+                  }}
+                  id="startLSPMenuBtn"
+                >
+                  Restart LSP
+                </MenuItem>
+              );
+            },
+            componentId: "startLSPMenuBtn",
+          },
+          {
+            name: "Stop LSP",
+            component: () => {
+              return (
+                <MenuItem
+                  onClick={async () => {
+                    await invoke<number>("stop_sourcekit_server");
+                  }}
+                  id="stopLSPMenuBtn"
+                >
+                  Stop LSP
+                </MenuItem>
+              );
+            },
+            componentId: "stopLSPMenuBtn",
           },
         ],
       },
